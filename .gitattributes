@@ -1,0 +1,4 @@
+# Normalizes line endings to LF for all text files checked into the repo,
+# while leaving local line endings untouched in the working tree.
+# It is essentially the same as setting core.autocrlf=input in Git settings.
+* text=auto
