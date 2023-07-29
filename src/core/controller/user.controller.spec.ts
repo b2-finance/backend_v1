@@ -55,94 +55,95 @@ describe('UserController', () => {
   });
 
   describe('createOne()', () => {
-    it('should call svc.create with correct arguments', async () => {
-      const request = {
-        user: { sub: randomUUID(), username: 'username' }
+    it('should return the expected user DTO', async () => {
+      const id = randomUUID();
+      const req = {
+        user: {
+          sub: id,
+          username: 'username'
+        }
       };
-      const user = new User();
-      jest.spyOn(map, 'createToUser').mockReturnValue(user);
-      await con.createOne(request as AuthRequest, new UserCreateDto());
-      expect(svc.create).toHaveBeenCalledWith(user);
-    });
+      const userCreateDto: UserCreateDto = {
+        username: req.user.username,
+        email: 'username@email.com'
+      };
+      const user: User = {
+        id,
+        username: userCreateDto.username,
+        email: userCreateDto.email,
+        createDate: new Date(),
+        updateDate: new Date()
+      };
+      const userDto: UserDto = {
+        id,
+        username: user.username,
+        email: user.email
+      };
+      jest
+        .spyOn(map, 'createToUser')
+        .mockImplementation((x, y) =>
+          x === id && y === userCreateDto ? user : null
+        );
+      jest
+        .spyOn(svc, 'create')
+        .mockImplementation(async (x) => (x === user ? user : null));
+      jest
+        .spyOn(map, 'userToDto')
+        .mockImplementation((x) => (x === user ? userDto : null));
 
-    it('should call map.userToDto with correct arguments', async () => {
-      const request = {
-        user: { sub: randomUUID(), username: 'username' }
-      };
-      const dto = new UserCreateDto();
-      const user = new User();
-      jest.spyOn(svc, 'create').mockResolvedValue(user);
-      await con.createOne(request as AuthRequest, dto);
-      expect(map.userToDto).toHaveBeenCalledWith(user);
-    });
-
-    it('should return a UserDto', async () => {
-      const request = {
-        user: { sub: randomUUID(), username: 'username' }
-      };
-      const dto = new UserDto();
-      jest.spyOn(map, 'userToDto').mockReturnValue(dto);
-      const actual = await con.createOne(
-        request as AuthRequest,
-        new UserCreateDto()
-      );
-      expect(actual).toEqual(dto);
+      const actual = await con.createOne(req as AuthRequest, userCreateDto);
+      expect(actual).toEqual(userDto);
     });
   });
 
   describe('getAll()', () => {
-    it('should call svc.findAll', async () => {
-      await con.getAll();
-      expect(svc.findAll).toHaveBeenCalled();
-    });
-
-    it('should call map.userToDto with correct arguments', async () => {
-      const user = new User();
-      jest.spyOn(svc, 'findAll').mockResolvedValue([user]);
-      await con.getAll();
-      expect(map.userToDto).toHaveBeenCalledWith(user);
-    });
-
-    it('should call map.userToDto the correct number of times', async () => {
-      const user = new User();
-      const users = [user, user];
-      jest.spyOn(svc, 'findAll').mockResolvedValue(users);
-      await con.getAll();
-      expect(map.userToDto).toHaveBeenCalledTimes(users.length);
-    });
-
-    it('should return a list of UserDtos', async () => {
-      const user = new User();
-      const dto = new UserDto();
+    it('should return a list of user DTOs', async () => {
+      const user: User = {
+        id: randomUUID(),
+        username: 'username',
+        email: 'username@email.com',
+        createDate: new Date(),
+        updateDate: new Date()
+      };
+      const userDto: UserDto = {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      };
       jest.spyOn(svc, 'findAll').mockResolvedValue([user, user]);
-      jest.spyOn(map, 'userToDto').mockReturnValue(dto);
+      jest
+        .spyOn(map, 'userToDto')
+        .mockImplementation((x) => (x === user ? userDto : null));
+
       const actual = await con.getAll();
-      expect(actual).toEqual([dto, dto]);
+      expect(actual).toEqual([userDto, userDto]);
     });
   });
 
   describe('getOne()', () => {
-    it('should call svc.findOneById with correct arguments', async () => {
+    it('should return the expected user DTO', async () => {
       const id = randomUUID();
-      jest.spyOn(svc, 'findOneById').mockResolvedValue(new User());
-      await con.getOne(id);
-      expect(svc.findOneById).toHaveBeenCalledWith(id);
-    });
+      const user: User = {
+        id,
+        username: 'username',
+        email: 'username@email.com',
+        createDate: new Date(),
+        updateDate: new Date()
+      };
+      const userDto: UserDto = {
+        id,
+        username: user.username,
+        email: user.email
+      };
+      jest
+        .spyOn(svc, 'findOneById')
+        .mockImplementation(async (x) => (x === id ? user : null));
+      jest
+        .spyOn(map, 'userToDto')
+        .mockImplementation((x) => (x === user ? userDto : null));
 
-    it('should call map.userToDto with correct arguments', async () => {
-      const user = new User();
-      jest.spyOn(svc, 'findOneById').mockResolvedValue(user);
-      await con.getOne(randomUUID());
-      expect(map.userToDto).toHaveBeenCalledWith(user);
-    });
-
-    it('should return a UserDto', async () => {
-      const user = new User();
-      const dto = new UserDto();
-      jest.spyOn(svc, 'findOneById').mockResolvedValue(user);
-      jest.spyOn(map, 'userToDto').mockReturnValue(dto);
-      const actual = await con.getOne(randomUUID());
-      expect(actual).toEqual(dto);
+      const actual = await con.getOne(id);
+      expect(actual).toEqual(userDto);
     });
 
     it('should throw NotFoundException if id does not exist', async () => {
@@ -154,7 +155,7 @@ describe('UserController', () => {
   });
 
   describe('updateOne()', () => {
-    it('should call svc.update with correct arguments', async () => {
+    it('should call svc.update with expected arguments', async () => {
       const id = randomUUID();
       const updates: UserUpdateDto = { username: 'username' };
       await con.updateOne(id, updates);
@@ -163,7 +164,7 @@ describe('UserController', () => {
   });
 
   describe('deleteOne()', () => {
-    it('should call svc.delete with correct arguments', async () => {
+    it('should call svc.delete with expected arguments', async () => {
       const id = randomUUID();
       await con.deleteOne(id);
       expect(svc.delete).toHaveBeenCalledWith(id);

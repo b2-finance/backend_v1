@@ -54,82 +54,86 @@ describe('ThingController', () => {
   });
 
   describe('createOne()', () => {
-    it('should call svc.create with correct arguments', async () => {
-      const thing = new Thing();
-      jest.spyOn(map, 'createToThing').mockReturnValue(thing);
-      await con.createOne(new ThingCreateDto());
-      expect(svc.create).toHaveBeenCalledWith(thing);
-    });
+    it('should return the expected thing DTO', async () => {
+      const thingCreateDto: ThingCreateDto = {
+        name: 'name',
+        description: 'description'
+      };
+      const thing: Thing = {
+        id: randomUUID(),
+        name: thingCreateDto.name,
+        description: thingCreateDto.description,
+        createDate: new Date(),
+        updateDate: new Date()
+      };
+      const thingDto: ThingDto = {
+        id: thing.id,
+        name: thing.name,
+        description: thing.description
+      };
+      jest
+        .spyOn(map, 'createToThing')
+        .mockImplementation((x) => (x === thingCreateDto ? thing : null));
+      jest
+        .spyOn(svc, 'create')
+        .mockImplementation(async (x) => (x === thing ? thing : null));
+      jest
+        .spyOn(map, 'thingToDto')
+        .mockImplementation((x) => (x === thing ? thingDto : null));
 
-    it('should call map.thingToDto with correct arguments', async () => {
-      const dto = new ThingCreateDto();
-      const thing = new Thing();
-      jest.spyOn(svc, 'create').mockResolvedValue(thing);
-      await con.createOne(dto);
-      expect(map.thingToDto).toHaveBeenCalledWith(thing);
-    });
-
-    it('should return a ThingDto', async () => {
-      const dto = new ThingDto();
-      jest.spyOn(map, 'thingToDto').mockReturnValue(dto);
-      const actual = await con.createOne(new ThingCreateDto());
-      expect(actual).toEqual(dto);
+      const actual = await con.createOne(thingCreateDto);
+      expect(actual).toEqual(thingDto);
     });
   });
 
   describe('getAll()', () => {
-    it('should call svc.findAll', async () => {
-      await con.getAll();
-      expect(svc.findAll).toHaveBeenCalled();
-    });
-
-    it('should call map.thingToDto with correct arguments', async () => {
-      const thing = new Thing();
-      jest.spyOn(svc, 'findAll').mockResolvedValue([thing]);
-      await con.getAll();
-      expect(map.thingToDto).toHaveBeenCalledWith(thing);
-    });
-
-    it('should call map.thingToDto the correct number of times', async () => {
-      const thing = new Thing();
-      const things = [thing, thing];
-      jest.spyOn(svc, 'findAll').mockResolvedValue(things);
-      await con.getAll();
-      expect(map.thingToDto).toHaveBeenCalledTimes(things.length);
-    });
-
-    it('should return a list of ThingDtos', async () => {
-      const thing = new Thing();
-      const dto = new ThingDto();
+    it('should return a list of thing DTOs', async () => {
+      const thing: Thing = {
+        id: randomUUID(),
+        name: 'name',
+        description: 'description',
+        createDate: new Date(),
+        updateDate: new Date()
+      };
+      const thingDto: ThingDto = {
+        id: thing.id,
+        name: thing.name,
+        description: thing.description
+      };
       jest.spyOn(svc, 'findAll').mockResolvedValue([thing, thing]);
-      jest.spyOn(map, 'thingToDto').mockReturnValue(dto);
+      jest
+        .spyOn(map, 'thingToDto')
+        .mockImplementation((x) => (x === thing ? thingDto : null));
+
       const actual = await con.getAll();
-      expect(actual).toEqual([dto, dto]);
+      expect(actual).toEqual([thingDto, thingDto]);
     });
   });
 
   describe('getOne()', () => {
-    it('should call svc.findOneById with correct arguments', async () => {
+    it('should return the expected thing DTO', async () => {
       const id = randomUUID();
-      jest.spyOn(svc, 'findOneById').mockResolvedValue(new Thing());
-      await con.getOne(id);
-      expect(svc.findOneById).toHaveBeenCalledWith(id);
-    });
+      const thing: Thing = {
+        id,
+        name: 'name',
+        description: 'description',
+        createDate: new Date(),
+        updateDate: new Date()
+      };
+      const thingDto: ThingDto = {
+        id,
+        name: thing.name,
+        description: thing.description
+      };
+      jest
+        .spyOn(svc, 'findOneById')
+        .mockImplementation(async (x) => (x === id ? thing : null));
+      jest
+        .spyOn(map, 'thingToDto')
+        .mockImplementation((x) => (x === thing ? thingDto : null));
 
-    it('should call map.thingToDto with correct arguments', async () => {
-      const thing = new Thing();
-      jest.spyOn(svc, 'findOneById').mockResolvedValue(thing);
-      await con.getOne(randomUUID());
-      expect(map.thingToDto).toHaveBeenCalledWith(thing);
-    });
-
-    it('should return a ThingDto', async () => {
-      const thing = new Thing();
-      const dto = new ThingDto();
-      jest.spyOn(svc, 'findOneById').mockResolvedValue(thing);
-      jest.spyOn(map, 'thingToDto').mockReturnValue(dto);
-      const actual = await con.getOne(randomUUID());
-      expect(actual).toEqual(dto);
+      const actual = await con.getOne(id);
+      expect(actual).toEqual(thingDto);
     });
 
     it('should throw NotFoundException if id does not exist', async () => {
@@ -141,7 +145,7 @@ describe('ThingController', () => {
   });
 
   describe('updateOne()', () => {
-    it('should call svc.update with correct arguments', async () => {
+    it('should call svc.update with expected arguments', async () => {
       const id = randomUUID();
       const updates: ThingUpdateDto = { name: 'name' };
       await con.updateOne(id, updates);
@@ -150,7 +154,7 @@ describe('ThingController', () => {
   });
 
   describe('deleteOne()', () => {
-    it('should call svc.delete with correct arguments', async () => {
+    it('should call svc.delete with expected arguments', async () => {
       const id = randomUUID();
       await con.deleteOne(id);
       expect(svc.delete).toHaveBeenCalledWith(id);

@@ -41,6 +41,17 @@ describe('ThingController (e2e)', () => {
   });
 
   describe('POST /api/things', () => {
+    it('should require an access token', async () => {
+      const dto: ThingCreateDto = {
+        name: 'name',
+        description: 'description'
+      };
+      await request(app.getHttpServer())
+        .post('/api/things')
+        .send(dto)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return CREATED status', async () => {
       const dto: ThingCreateDto = {
         name: 'name',
@@ -53,15 +64,15 @@ describe('ThingController (e2e)', () => {
         .expect(HttpStatus.CREATED);
     });
 
-    it('should return the created thing', async () => {
+    it('should return the created thing DTO', async () => {
       const thingCreateDto: ThingCreateDto = {
         name: 'name',
         description: 'description'
       };
       const thingDto: ThingDto = {
         id: expect.any(String),
-        name: 'name',
-        description: 'description'
+        name: thingCreateDto.name,
+        description: thingCreateDto.description
       };
       await request(app.getHttpServer())
         .post('/api/things')
@@ -79,8 +90,8 @@ describe('ThingController (e2e)', () => {
       };
       const thing: Thing = {
         id: expect.any(String),
-        name: 'name',
-        description: 'description',
+        name: dto.name,
+        description: dto.description,
         createDate: expect.any(Date),
         updateDate: expect.any(Date)
       };
@@ -95,6 +106,12 @@ describe('ThingController (e2e)', () => {
   });
 
   describe('GET /api/things', () => {
+    it('should require an access token', async () => {
+      await request(app.getHttpServer())
+        .get('/api/things')
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return OK status', async () => {
       await request(app.getHttpServer())
         .get('/api/things')
@@ -102,8 +119,8 @@ describe('ThingController (e2e)', () => {
         .expect(HttpStatus.OK);
     });
 
-    it('should return a list of all things', async () => {
-      const n = 5;
+    it('should return a list of all thing DTOs', async () => {
+      const n = 3;
 
       for (let i = 0; i < n; i++) {
         const thing: Partial<Thing> = {
@@ -122,10 +139,22 @@ describe('ThingController (e2e)', () => {
   });
 
   describe('GET /api/things/:id', () => {
+    it('should require an access token', async () => {
+      const thing: Partial<Thing> = {
+        name: 'name',
+        description: 'description'
+      };
+      const { id } = await repo.save(thing);
+
+      await request(app.getHttpServer())
+        .get(`/api/things/${id}`)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return OK status', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id } = await repo.save(thing);
 
@@ -137,8 +166,8 @@ describe('ThingController (e2e)', () => {
 
     it('should return NOT FOUND status if id does not exist', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id } = await repo.save(thing);
 
@@ -153,27 +182,40 @@ describe('ThingController (e2e)', () => {
 
     it('should return a thing DTO if it exists', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id, name, description } = await repo.save(thing);
+      const dto: ThingDto = { id, name, description };
 
       await request(app.getHttpServer())
         .get(`/api/things/${id}`)
         .set('Authorization', `Bearer ${await getAccessToken()}`)
         .expect(({ body }) => {
-          expect(body.id).toEqual(id);
-          expect(body.name).toEqual(name);
-          expect(body.description).toEqual(description);
+          expect(body).toEqual(dto);
         });
     });
   });
 
   describe('PATCH /api/things/:id', () => {
+    it('should require an access token', async () => {
+      const thing: Partial<Thing> = {
+        name: 'name',
+        description: 'description'
+      };
+      const { id, name } = await repo.save(thing);
+      const newName = `${name}1`;
+
+      await request(app.getHttpServer())
+        .patch(`/api/things/${id}`)
+        .send({ name: newName })
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return OK status', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id, name } = await repo.save(thing);
       const newName = `${name}1`;
@@ -187,8 +229,8 @@ describe('ThingController (e2e)', () => {
 
     it('should update the database record', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id, name } = await repo.save(thing);
       const newName = `${name}1`;
@@ -204,10 +246,22 @@ describe('ThingController (e2e)', () => {
   });
 
   describe('DELETE /api/things/:id', () => {
+    it('should require an access token', async () => {
+      const thing: Partial<Thing> = {
+        name: 'name',
+        description: 'description'
+      };
+      const { id } = await repo.save(thing);
+
+      await request(app.getHttpServer())
+        .delete(`/api/things/${id}`)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return NO CONTENT status', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id } = await repo.save(thing);
 
@@ -219,8 +273,8 @@ describe('ThingController (e2e)', () => {
 
     it('it should remove the thing record from the database', async () => {
       const thing: Partial<Thing> = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const { id } = await repo.save(thing);
 
@@ -228,7 +282,8 @@ describe('ThingController (e2e)', () => {
         .delete(`/api/things/${id}`)
         .set('Authorization', `Bearer ${await getAccessToken()}`);
 
-      expect(await repo.findOneBy({ id })).toBeNull();
+      const actual = await repo.findOneBy({ id });
+      expect(actual).toBeNull();
     });
   });
 });

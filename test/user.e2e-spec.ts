@@ -41,6 +41,17 @@ describe('UserController (e2e)', () => {
   });
 
   describe('POST /api/users', () => {
+    it('should require an access token', async () => {
+      const dto: UserCreateDto = {
+        username: 'username',
+        email: 'username@email.com'
+      };
+      await request(app.getHttpServer())
+        .post('/api/users')
+        .send(dto)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return CREATED status', async () => {
       const dto: UserCreateDto = {
         username: 'username',
@@ -78,6 +89,12 @@ describe('UserController (e2e)', () => {
   });
 
   describe('GET /api/users', () => {
+    it('should require an access token', async () => {
+      await request(app.getHttpServer())
+        .get('/api/users')
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return OK status', async () => {
       const accessToken = await getAccessToken();
 
@@ -87,7 +104,7 @@ describe('UserController (e2e)', () => {
         .expect(HttpStatus.OK);
     });
 
-    it('should return a list of all users', async () => {
+    it('should return a list of all user DTOs', async () => {
       const n = 5;
       let accessToken: string;
 
@@ -108,6 +125,16 @@ describe('UserController (e2e)', () => {
   });
 
   describe('GET /api/users/:id', () => {
+    it('should require an access token', async () => {
+      const {
+        user: { id }
+      } = await signUp(app);
+
+      await request(app.getHttpServer())
+        .get(`/api/users/${id}`)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return OK status', async () => {
       const {
         user: { id },
@@ -141,23 +168,37 @@ describe('UserController (e2e)', () => {
         user: { id, username, email }
       } = await signUp(app);
 
+      const dto: UserDto = { id, username, email };
+
       await request(app.getHttpServer())
         .get(`/api/users/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(({ body }) => {
-          expect(body.id).toEqual(id);
-          expect(body.username).toEqual(username);
-          expect(body.email).toEqual(email);
+          expect(body).toEqual(dto);
         });
     });
   });
 
   describe('PATCH /api/users/:id', () => {
+    it('should require an access token', async () => {
+      const {
+        user: { id, username }
+      } = await signUp(app);
+
+      const newUsername = `${username}1`;
+
+      await request(app.getHttpServer())
+        .patch(`/api/users/${id}`)
+        .send({ username: newUsername })
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return OK status', async () => {
       const {
         accessToken,
         user: { id, username }
       } = await signUp(app);
+
       const newUsername = `${username}1`;
 
       await request(app.getHttpServer())
@@ -172,6 +213,7 @@ describe('UserController (e2e)', () => {
         accessToken,
         user: { id, username }
       } = await signUp(app);
+
       const newUsername = `${username}1`;
 
       await request(app.getHttpServer())
@@ -185,6 +227,16 @@ describe('UserController (e2e)', () => {
   });
 
   describe('DELETE /api/users/:id', () => {
+    it('should require an access token', async () => {
+      const {
+        user: { id }
+      } = await signUp(app);
+
+      await request(app.getHttpServer())
+        .delete(`/api/users/${id}`)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should return NO CONTENT status', async () => {
       const {
         accessToken,
@@ -207,7 +259,8 @@ describe('UserController (e2e)', () => {
         .delete(`/api/users/${id}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
-      expect(await repo.findOneBy({ id })).toBeNull();
+      const actual = await repo.findOneBy({ id });
+      expect(actual).toBeNull();
     });
   });
 });

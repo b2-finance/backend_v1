@@ -39,46 +39,54 @@ describe('UserService', () => {
   });
 
   describe('create()', () => {
-    it('should call repo.save with correct arguments', async () => {
+    it('should return the expected user', async () => {
       const user = new User();
-      await svc.create(user);
-      expect(repo.save).toHaveBeenCalledWith(user);
-    });
+      user.username = 'username';
+      user.email = 'email';
 
-    it('should return a user', async () => {
-      const user = new User();
-      jest.spyOn(repo, 'save').mockResolvedValue(user);
+      jest
+        .spyOn(repo, 'save')
+        .mockImplementation(async (x) => (x === user ? user : null));
+
       const actual = await svc.create(user);
       expect(actual).toEqual(user);
     });
   });
 
   describe('findAll()', () => {
-    it('should call repo.find', async () => {
-      await svc.findAll();
-      expect(repo.find).toHaveBeenCalled();
-    });
-
     it('should return a list of users', async () => {
       const user = new User();
+      user.username = 'username';
+      user.email = 'email';
+
       const users = [user, user];
       jest.spyOn(repo, 'find').mockResolvedValue(users);
+
       const actual = await svc.findAll();
       expect(actual).toEqual(users);
+    });
+
+    it('should return an empty list if there are no users', async () => {
+      jest.spyOn(repo, 'find').mockResolvedValue([]);
+      const actual = await svc.findAll();
+      expect(actual).toEqual([]);
     });
   });
 
   describe('findOneById()', () => {
-    it('should call repo.findOneBy with correct arguments', async () => {
+    it('should return the expected user', async () => {
       const id = randomUUID();
-      await svc.findOneById(id);
-      expect(repo.findOneBy).toHaveBeenCalledWith({ id });
-    });
 
-    it('should return a user', async () => {
       const user = new User();
-      jest.spyOn(repo, 'findOneBy').mockResolvedValue(user);
-      const actual = await svc.findOneById(randomUUID());
+      user.id = id;
+      user.username = 'username';
+      user.email = 'email';
+
+      jest
+        .spyOn(repo, 'findOneBy')
+        .mockImplementation(async ({ id: x }: any) => (x === id ? user : null));
+
+      const actual = await svc.findOneById(id);
       expect(actual).toEqual(user);
     });
 
@@ -90,16 +98,21 @@ describe('UserService', () => {
   });
 
   describe('findOneByUsername()', () => {
-    it('should call repo.findOneBy with correct arguments', async () => {
+    it('should return the expected user', async () => {
       const username = 'username';
-      await svc.findOneByUsername(username);
-      expect(repo.findOneBy).toHaveBeenCalledWith({ username });
-    });
 
-    it('should return a user', async () => {
       const user = new User();
-      jest.spyOn(repo, 'findOneBy').mockResolvedValue(user);
-      const actual = await svc.findOneByUsername('username');
+      user.id = randomUUID();
+      user.username = username;
+      user.email = 'email';
+
+      jest
+        .spyOn(repo, 'findOneBy')
+        .mockImplementation(async ({ username: x }: any) =>
+          x === username ? user : null
+        );
+
+      const actual = await svc.findOneByUsername(username);
       expect(actual).toEqual(user);
     });
 
@@ -111,7 +124,7 @@ describe('UserService', () => {
   });
 
   describe('update()', () => {
-    it('should call repo.update with correct arguments', async () => {
+    it('should call repo.update with expected arguments', async () => {
       const id = randomUUID();
       const updates: Partial<User> = { username: 'username' };
       await svc.update(id, updates);
@@ -120,7 +133,7 @@ describe('UserService', () => {
   });
 
   describe('delete()', () => {
-    it('should call repo.delete with correct arguments', async () => {
+    it('should call repo.delete with expected arguments', async () => {
       const id = randomUUID();
       await svc.delete(id);
       expect(repo.delete).toHaveBeenCalledWith(id);
