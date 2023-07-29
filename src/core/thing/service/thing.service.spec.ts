@@ -39,46 +39,56 @@ describe('ThingService', () => {
   });
 
   describe('create()', () => {
-    it('should call repo.save with correct arguments', async () => {
+    it('should return the expected thing', async () => {
       const thing = new Thing();
-      await svc.create(thing);
-      expect(repo.save).toHaveBeenCalledWith(thing);
-    });
+      thing.name = 'name';
+      thing.description = 'description';
 
-    it('should return a thing', async () => {
-      const thing = new Thing();
-      jest.spyOn(repo, 'save').mockResolvedValue(thing);
+      jest
+        .spyOn(repo, 'save')
+        .mockImplementation(async (x) => (x === thing ? thing : null));
+
       const actual = await svc.create(thing);
       expect(actual).toEqual(thing);
     });
   });
 
   describe('findAll()', () => {
-    it('should call repo.find', async () => {
-      await svc.findAll();
-      expect(repo.find).toHaveBeenCalled();
-    });
-
     it('should return a list of things', async () => {
       const thing = new Thing();
+      thing.name = 'name';
+      thing.description = 'description';
+
       const things = [thing, thing];
       jest.spyOn(repo, 'find').mockResolvedValue(things);
+
       const actual = await svc.findAll();
       expect(actual).toEqual(things);
+    });
+
+    it('should return an empty list if there are no things', async () => {
+      jest.spyOn(repo, 'find').mockResolvedValue([]);
+      const actual = await svc.findAll();
+      expect(actual).toEqual([]);
     });
   });
 
   describe('findOneById()', () => {
-    it('should call repo.findOneBy with correct arguments', async () => {
+    it('should return the expected thing', async () => {
       const id = randomUUID();
-      await svc.findOneById(id);
-      expect(repo.findOneBy).toHaveBeenCalledWith({ id });
-    });
 
-    it('should return a thing', async () => {
       const thing = new Thing();
-      jest.spyOn(repo, 'findOneBy').mockResolvedValue(thing);
-      const actual = await svc.findOneById(randomUUID());
+      thing.id = id;
+      thing.name = 'name';
+      thing.description = 'description';
+
+      jest
+        .spyOn(repo, 'findOneBy')
+        .mockImplementation(async ({ id: x }: any) =>
+          x === id ? thing : null
+        );
+
+      const actual = await svc.findOneById(id);
       expect(actual).toEqual(thing);
     });
 
@@ -90,7 +100,7 @@ describe('ThingService', () => {
   });
 
   describe('update()', () => {
-    it('should call repo.update with correct arguments', async () => {
+    it('should call repo.update with expected arguments', async () => {
       const id = randomUUID();
       const updates: Partial<Thing> = { name: 'name' };
       await svc.update(id, updates);
@@ -99,7 +109,7 @@ describe('ThingService', () => {
   });
 
   describe('delete()', () => {
-    it('should call repo.delete with correct arguments', async () => {
+    it('should call repo.delete with expected arguments', async () => {
       const id = randomUUID();
       await svc.delete(id);
       expect(repo.delete).toHaveBeenCalledWith(id);

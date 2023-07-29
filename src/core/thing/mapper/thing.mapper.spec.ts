@@ -21,11 +21,11 @@ describe('ThingMapper', () => {
   });
 
   describe('thingToDto()', () => {
-    it('should convert a Thing to ThingDto', () => {
+    it('should convert a thing to thing DTO', () => {
       const thing: Thing = {
         id: randomUUID(),
-        name: 'a',
-        description: 'b',
+        name: 'name',
+        description: 'description',
         createDate: new Date(),
         updateDate: new Date()
       };
@@ -40,10 +40,10 @@ describe('ThingMapper', () => {
   });
 
   describe('createToThing()', () => {
-    it('should convert a ThingCreateDto to Thing', () => {
+    it('should convert a thing-create DTO to thing', () => {
       const dto: ThingCreateDto = {
-        name: 'a',
-        description: 'b'
+        name: 'name',
+        description: 'description'
       };
       const thing = new Thing();
       thing.name = dto.name;
