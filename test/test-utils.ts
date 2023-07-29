@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserDto } from 'src/core/dto/user.dto';
+import { User } from 'src/core/entity/user.entity';
 import { UserCreateDto } from 'src/core/dto/user-create.dto';
 import { randomUUID } from 'crypto';
 
@@ -78,7 +78,7 @@ export const SIGNUP_USER_DEFAULTS = {
  */
 export interface SignUpResult {
   accessToken: string;
-  user: UserDto;
+  user: User;
 }
 
 /**
@@ -95,10 +95,16 @@ export async function signUp(
 ): Promise<SignUpResult> {
   const accessToken = await getAccessToken(dto);
 
-  const { body: user } = await request(app.getHttpServer())
+  const { body: userDto } = await request(app.getHttpServer())
     .post('/api/users')
     .set('Authorization', `Bearer ${accessToken}`)
     .send(dto);
+
+  const user: User = {
+    ...userDto,
+    createDate: expect.any(Date),
+    updateDate: expect.any(Date)
+  };
 
   return { accessToken, user };
 }
