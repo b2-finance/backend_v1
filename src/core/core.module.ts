@@ -18,7 +18,9 @@ import { AccountController } from './controller/account.controller';
 import { AccountService } from './service/account.service';
 import { AccountMapper } from './mapper/account.mapper';
 import { Account } from './entity/account.entity';
+import { TransactionController } from './controller/transaction.controller';
 import { TransactionService } from './service/transaction.service';
+import { TransactionMapper } from './mapper/transaction.mapper';
 import { Transaction } from './entity/transaction.entity';
 import { TransactionLine } from './entity/transaction-line.entity';
 
@@ -42,7 +44,8 @@ import { TransactionLine } from './entity/transaction-line.entity';
     ThingController,
     UserController,
     CompanyController,
-    AccountController
+    AccountController,
+    TransactionController
   ],
   providers: [
     ThingService,
@@ -53,7 +56,8 @@ import { TransactionLine } from './entity/transaction-line.entity';
     CompanyMapper,
     AccountService,
     AccountMapper,
-    TransactionService
+    TransactionService,
+    TransactionMapper
   ]
 })
 export class CoreModule {}
