@@ -271,7 +271,7 @@ describe('ThingController (e2e)', () => {
         .expect(HttpStatus.NO_CONTENT);
     });
 
-    it('it should remove the thing record from the database', async () => {
+    it('should remove the thing record from the database', async () => {
       const thing: Partial<Thing> = {
         name: 'name',
         description: 'description'

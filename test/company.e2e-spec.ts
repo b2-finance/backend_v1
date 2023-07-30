@@ -339,7 +339,7 @@ describe('CompanyController (e2e)', () => {
         .expect(HttpStatus.NO_CONTENT);
     });
 
-    it('it should remove the company record from the database', async () => {
+    it('should remove the company record from the database', async () => {
       const { accessToken, user } = await signUp(app);
 
       const company: Partial<Company> = {
