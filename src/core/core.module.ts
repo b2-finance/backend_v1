@@ -18,13 +18,23 @@ import { AccountController } from './controller/account.controller';
 import { AccountService } from './service/account.service';
 import { AccountMapper } from './mapper/account.mapper';
 import { Account } from './entity/account.entity';
+import { TransactionService } from './service/transaction.service';
+import { Transaction } from './entity/transaction.entity';
+import { TransactionLine } from './entity/transaction-line.entity';
 
 /**
  * Contains the core services and entities of the app
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Thing, User, Company, Account]),
+    TypeOrmModule.forFeature([
+      Thing,
+      User,
+      Company,
+      Account,
+      Transaction,
+      TransactionLine
+    ]),
     LogModule,
     AuthModule
   ],
@@ -42,7 +52,8 @@ import { Account } from './entity/account.entity';
     CompanyService,
     CompanyMapper,
     AccountService,
-    AccountMapper
+    AccountMapper,
+    TransactionService
   ]
 })
 export class CoreModule {}
