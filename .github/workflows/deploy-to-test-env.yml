@@ -1,0 +1,78 @@
+name: deploy-to-test-env
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: main
+    types: closed
+    paths-ignore: '.github/workflows/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+
+    steps:
+      - name: debug
+        run: |
+          echo event: ${{ github.event_name }}
+          echo ref: ${{ github.ref }}
+
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.16.1'
+
+      - name: cache node_modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: build
+        run: npm run build
+
+      - name: setup Procfile
+        run: |
+          echo "web: npm run start:prod" >> Procfile
+
+      - name: get timestamp
+        uses: gerred/actions/current-time@master
+        id: current-time
+
+      - name: run string replace
+        uses: frabert/replace-string-action@master
+        id: format-time
+        with:
+          pattern: '[:\.]+'
+          string: '${{ steps.current-time.outputs.time }}'
+          replace-with: '-'
+          flags: 'g'
+
+      - name: generate deployment package
+        run: zip -r deploy.zip * .[^.]* -x "**node_modules**"
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: deploy.zip
+          path: deploy.zip
+          retention-days: 1
+
+      - name: deploy to beanstalk
+        uses: einaregilsson/beanstalk-deploy@v16
+        with:
+          application_name: b2-backend
+          environment_name: b2-backend-test
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: us-west-2
+          version_label: 'version-label-${{ steps.format-time.outputs.replaced }}'
+          deployment_package: deploy.zip
