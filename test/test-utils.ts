@@ -108,3 +108,23 @@ export async function signUp(
 
   return { accessToken, user };
 }
+
+/**
+ * An object containing keys and values representing a query string
+ */
+export interface QueryStringParams {
+  [key: string]: string;
+}
+
+/**
+ * Generates a url query string based on the given params object
+ *
+ * @param params {@link QueryStringParams}
+ * @returns A string of query parameters
+ */
+export function getQueryString(params: QueryStringParams) {
+  const entries = Object.entries(params);
+  return !entries.length
+    ? ''
+    : `?${entries.map(([k, v]) => `${k}=${v}`).join('&')}`;
+}

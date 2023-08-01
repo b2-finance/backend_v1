@@ -249,7 +249,7 @@ describe('UserController (e2e)', () => {
         .expect(HttpStatus.NO_CONTENT);
     });
 
-    it('it should remove the user record from the database', async () => {
+    it('should remove the user record from the database', async () => {
       const {
         accessToken,
         user: { id }
