@@ -4,6 +4,7 @@ import { LogService } from './log/log.service';
 import { ValidationPipe } from '@nestjs/common';
 import { QueryFailedErrorFilter } from './shared/exception-filter/query-failed-error.filter';
 import { EntityNotFoundErrorFilter } from './shared/exception-filter/entity-not-found-error.filter';
+import { EntityPropertyNotFoundErrorFilter } from './shared/exception-filter/entity-property-not-found-error.filter';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
@@ -15,7 +16,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(
     new QueryFailedErrorFilter(),
-    new EntityNotFoundErrorFilter()
+    new EntityNotFoundErrorFilter(),
+    new EntityPropertyNotFoundErrorFilter()
   );
 
   const config = app.get(ConfigService);
