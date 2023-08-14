@@ -18,7 +18,7 @@ export class EntityPropertyNotFoundErrorFilter implements ExceptionFilter {
   catch(exception: EntityPropertyNotFoundError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const statusCode = HttpStatus.NOT_FOUND;
+    const statusCode = HttpStatus.BAD_REQUEST;
     const { name: error, message } = exception;
 
     this.logger.error(message);
